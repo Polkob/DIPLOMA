@@ -1,48 +1,67 @@
 <script setup>
-import IconUser from './components/icons/IconUser.vue';
-import IconFavorite from './components/icons/IconFavorite.vue';
+import { useRoute, useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
+import IconUser from "./components/icons/IconUser.vue";
+import IconFavorite from "./components/icons/IconFavorite.vue";
 
+const route = useRoute();
+const router = useRouter();
+const toast = useToast();
 
+const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+
+const goToFavorites = () => {
+  if (isAuthenticated) {
+    router.push("/favorites");
+  } else {
+    toast.error("Пожалуйста, войдите в систему, чтобы посмотреть избранное", {
+      timeout: 3000,
+      position: "bottom-center",
+    });
+  }
+};
+
+const goToAccount = () => {
+  if (isAuthenticated) {
+    localStorage.setItem("isAuthenticated", "false");
+    toast.success("Вы успешно вышли из системы", {
+      timeout: 3000,
+      position: "bottom-center",
+    });
+    router.push("/login");
+  } else {
+    toast.info("Пожалуйста, войдите в систему", {
+      timeout: 3000,
+      position: "bottom-center",
+    });
+    router.push("/login");
+  }
+};
 </script>
 
 <template>
   <header>
-    <h1>FilmFinder</h1>
-    <button class="button-icon"><IconFavorite /></button>
-    <button class="button-icon"><IconUser /></button>
+    <h1 @click="$router.push('/')">MovieAs</h1>
+    <button class="button-icon" @click="goToFavorites">
+      <IconFavorite />
+    </button>
+    <button class="button-icon" @click="goToAccount">
+      <IconUser />
+    </button>
   </header>
-
-  <main>
-    <section class="panel">
-      <input type="text" placeholder="Поиск фильма..." class="search-input" />
-
-      <div class="cards">
-        <div class="movie-card">
-          <img src="https://via.placeholder.com/100x150?text=Poster+1" alt="Movie Poster 1" />
-        </div>
-        <div class="movie-card">
-          <img src="https://via.placeholder.com/100x150?text=Poster+2" alt="Movie Poster 2" />
-        </div>
-      </div>
-    </section>
-  </main>
+  <router-view />
 </template>
 
 <style scoped>
 header {
-  background-color: var(--vt-c-black-mute);
+  background-color: var(--vt-c-black);
   display: grid;
   grid-template-columns: 90% 5% 5%;
   padding: 1rem;
   width: 100vw;
-  border-bottom: 2px solid var(--vt-c-blue-dark);
-  box-shadow: 0 10px 10px -10px #440087;
-}
-h1 {
-  color: white;
 }
 
-.button-icon{
+.button-icon {
   background-color: inherit;
   border: none;
   width: 50px;
@@ -51,7 +70,7 @@ h1 {
 }
 
 .button-icon:hover {
-  background-color:  var(--vt-c-black-mute-2);
+  background-color: var(--vt-c-black-mute-2);
 }
 .panel {
   background-color: #1a1a1a;
@@ -60,7 +79,7 @@ h1 {
   align-items: center;
   gap: 1rem;
   border-bottom: 1px solid var(--vt-c-blue-dark);
-  box-shadow: 0 5px 5px -5px #440087;
+  box-shadow: 0 5px 5px -5px #003687;
 }
 
 .search-input {
@@ -71,24 +90,4 @@ h1 {
   font-size: 1rem;
   outline: none;
 }
-
-.cards {
-  display: flex;
-  gap: 1rem;
-}
-
-.movie-card {
-  width: 100px;
-  height: 150px;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-}
-
-.movie-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 </style>

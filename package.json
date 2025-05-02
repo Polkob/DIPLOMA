@@ -9,7 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.5.13"
+    "@mdi/font": "^7.4.47",
+    "@splidejs/vue-splide": "^0.6.12",
+    "axios": "^1.9.0",
+    "swiper": "^11.2.6",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.1",
+    "vue-toastification": "^2.0.0-rc.5",
+    "vuetify": "^3.8.2"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",

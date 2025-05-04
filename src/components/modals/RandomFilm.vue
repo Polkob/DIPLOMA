@@ -24,8 +24,6 @@
   <v-snackbar v-model="snackbar" timeout="3000" color="green" location="top right">
   {{ snackbarText }}
 </v-snackbar>
-
->>>>>>> c097a38b310eb800b60614eb6aa8dae30167adde
 </template>
 
 <script setup>

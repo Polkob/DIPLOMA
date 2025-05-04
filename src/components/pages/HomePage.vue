@@ -10,14 +10,19 @@ import defaultPoster from "@/assets/film-poster-default.webp";
 import { Autoplay } from "swiper/modules";
 import { EffectCoverflow, Pagination } from "swiper/modules";
 import RandomFilm from "../modals/RandomFilm.vue";
+import MoviePickerModal from "../modals/MoviePickerModal.vue";
+import PickedMovieModal from "../modals/PickedMovieModal.vue";
 import IconRaiting from "../../components/icons/IconRaiting.vue";
 import IconLeft from "../../components/icons/IconLeft.vue";
 import IconRight from "../../components/icons/IconRight.vue";
-import IconFavorite from "../../components/icons/IconFavorite.vue";
+import IconFavorite from "@/components/icons/IconFavorite.vue";
 
 const API_KEY = "54a2541709252b5e3de68b7642666940";
 const BASE_URL = "https://api.themoviedb.org/3";
 
+const showPicker = ref(false)
+const showResults = ref(false)
+const pickedMovies = ref([])
 const expanded = ref(false);
 const recommendedMovies = ref([]);
 const randomMovies = ref([]);
@@ -247,9 +252,33 @@ const selectSuggestion = (index, suggestion) => {
   similarMovies.value[index].suggestions = [];
 };
 
-const pickMovies = () => {
-  console.log("Подбираем похожие фильмы...");
+const handlePick = async ({ genre, year, country }) => {
+  if (!genre || !year || !country) {
+    console.error("Не все параметры выбраны");
+    return;
+  }
+  try {
+    const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
+      params: {
+        api_key: API_KEY,
+        language: 'ru-RU',
+        with_genres: genre,
+        primary_release_year: year,
+        region: country,
+        sort_by: 'popularity.desc',
+        page: 1
+      }
+    })
+
+    pickedMovies.value = response.data.results
+    console.log(pickedMovies)
+    showPicker.value = false
+    showResults.value = true
+  } catch (error) {
+    console.error('Ошибка при подборе фильмов:', error)
+  }
 };
+
 const addToFavorites = (movie) => {
   const isAuth = localStorage.getItem("isAuthenticated") === "true";
 
@@ -286,7 +315,7 @@ onMounted(() => {
   <div class="card-main">
     <main class="home">
       <span class="span-citata">
-        Каждый фильм — это новый мир. Найди свой.
+        Фильм как новый мир — открой его с MovieAs.
       </span>
 
       <div class="carousel-wrapper">
@@ -323,10 +352,24 @@ onMounted(() => {
       </div>
 
       <section class="buttons">
-        <button @click="pickMovies">Подобрать фильм</button>
+        <button @click="showPicker = true">Подобрать фильм</button>
+
+       
         <button @click="openMovieModal">Случайный фильм</button>
       </section>
+      <MoviePickerModal
+          v-if="showPicker"
+          :show="showPicker"
+          @close="showPicker = false"
+          @submit="handlePick"
+        />
 
+        <PickedMovieModal
+        v-if="showResults"
+        :show="showResults"
+          :movies="pickedMovies"
+          @close="showResults = false"
+        />
       <RandomFilm
         :showModal="showModal"
         :selectedMovie="selectedMovie"

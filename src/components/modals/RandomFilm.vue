@@ -4,7 +4,8 @@
       <span class="close-btn" @click="closeModal">&times;</span>
       <div class="movie-card">
         <img
-          :src="selectedMovie.poster"
+
+          :src="selectedMovie.poster_path"
           :alt="selectedMovie.title"
           class="movie-poster"
         />
@@ -20,10 +21,17 @@
       </div>
     </div>
   </div>
+  <v-snackbar v-model="snackbar" timeout="3000" color="green" location="top right">
+  {{ snackbarText }}
+</v-snackbar>
+
+>>>>>>> c097a38b310eb800b60614eb6aa8dae30167adde
 </template>
 
 <script setup>
 import { ref, defineProps, defineEmits, onMounted } from "vue";
+import { useToast } from "vue-toastification";
+const toast = useToast();
 
 const props = defineProps({
   showModal: Boolean,
@@ -37,15 +45,31 @@ const closeModal = () => {
 };
 
 const addToFavorites = () => {
-  if (props.selectedMovie) {
-    const currentFavorites =
-      JSON.parse(localStorage.getItem("favorites")) || [];
+  const isAuth = localStorage.getItem('isAuthenticated') === 'true';
 
+  if (!isAuth) {
+    toast.error('Чтобы добавить в избранное, войдите в аккаунт', {
+      position: 'bottom-center'
+    });
+    return;
+  }
+  if (props.selectedMovie) {
+  const currentFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+  if (!currentFavorites.find(f => f.id === props.selectedMovie.id)) {
     currentFavorites.push(props.selectedMovie);
     localStorage.setItem("favorites", JSON.stringify(currentFavorites));
-    alert("Фильм добавлен в избранное");
+    toast.success("Фильм добавлен в избранное 🎉", {
+      position: 'bottom-center'
+    });
+  } else {
+    toast.info("Фильм уже в избранном 🤔", {
+      position: 'bottom-center'
+    });
   }
+}
 };
+
 </script>
 
 <style scoped>

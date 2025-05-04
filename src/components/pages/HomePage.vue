@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { useToast } from "vue-toastification";
+const toast = useToast();
 import { Swiper, SwiperSlide } from "swiper/vue";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
@@ -11,6 +13,7 @@ import RandomFilm from "../modals/RandomFilm.vue";
 import IconRaiting from "../../components/icons/IconRaiting.vue";
 import IconLeft from "../../components/icons/IconLeft.vue";
 import IconRight from "../../components/icons/IconRight.vue";
+import IconFavorite from "../../components/icons/IconFavorite.vue";
 
 const API_KEY = "54a2541709252b5e3de68b7642666940";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -20,21 +23,29 @@ const recommendedMovies = ref([]);
 const randomMovies = ref([]);
 const showModal = ref(false);
 const selectedMovie = ref({
+  id: "",
   title: "",
-  poster: "",
+  poster_path: "",
   genres: "",
   actors: "",
   description: "",
 });
 const similarMovies = ref([{ id: 1, title: "", poster: "" }]);
-
+const favorites = ref(
+  Array.isArray(JSON.parse(localStorage.getItem("favorites")))
+    ? JSON.parse(localStorage.getItem("favorites"))
+    : []
+);
 const currentSlide = ref(0);
 
+const isFavorite = (id) => {
+  return favorites.value.some((f) => f.id === id) ? true : false;
+};
 const nextSlide = () => {
   if (currentSlide.value < recommendedMovies.value.length - 1) {
     currentSlide.value++;
   } else {
-    currentSlide.value = 0; // Возвращаемся к первому слайду, если дошли до конца
+    currentSlide.value = 0;
   }
 };
 
@@ -42,7 +53,7 @@ const prevSlide = () => {
   if (currentSlide.value > 0) {
     currentSlide.value--;
   } else {
-    currentSlide.value = recommendedMovies.value.length - 1; // Возвращаемся к последнему слайду, если на первом
+    currentSlide.value = recommendedMovies.value.length - 1;
   }
 };
 
@@ -58,9 +69,7 @@ const fetchRecommendedMovies = async () => {
 
     const basicMovies = response.data.results
       .slice(0, 10)
-      .filter((movie) => movie); // Только 10 фильмов
-
-    // Получаем расширенные данные по каждому фильму
+      .filter((movie) => movie);
     const detailedMovies = await Promise.all(
       basicMovies
         .map(async (movie) => {
@@ -81,14 +90,14 @@ const fetchRecommendedMovies = async () => {
               `Ошибка при получении деталей фильма ${movie.id}:`,
               err
             );
-            return null; // Пропустить, если ошибка
+            return null;
           }
         })
         .filter((movie) => movie)
     );
 
-    // Фильтруем только успешные запросы
     recommendedMovies.value = detailedMovies.filter((movie) => movie);
+
     console.log(recommendedMovies);
   } catch (error) {
     console.error("Ошибка при получении фильмов:", error);
@@ -96,7 +105,6 @@ const fetchRecommendedMovies = async () => {
 };
 
 const getPosterUrl = (path) => {
-  console.log(path);
   return path
     ? `https://image.tmdb.org/t/p/w500${path}`
     : "https://via.placeholder.com/500x750?text=Нет+постера";
@@ -173,10 +181,10 @@ const openMovieModal = async () => {
         },
       }
     );
-
     selectedMovie.value = {
+      id: movie.id,
       title: movie.title,
-      poster: movie.poster_path
+      poster_path: movie.poster_path
         ? `https://image.tmdb.org/t/p/w300${movie.poster_path}`
         : "https://via.placeholder.com/120x180?text=No+Image",
       genres: movieDetails.data.genres.map((genre) => genre.name).join(", "),
@@ -242,6 +250,32 @@ const selectSuggestion = (index, suggestion) => {
 const pickMovies = () => {
   console.log("Подбираем похожие фильмы...");
 };
+const addToFavorites = (movie) => {
+  const isAuth = localStorage.getItem("isAuthenticated") === "true";
+
+  if (!isAuth) {
+    toast.error("Чтобы добавить в избранное, войдите в аккаунт", {
+      position: "bottom-center",
+    });
+    return;
+  }
+
+  const movieIndex = favorites.value.findIndex((f) => f.id === movie.id);
+
+  if (movieIndex === -1) {
+    favorites.value.push(movie);
+    toast.success("Фильм добавлен в избранное 🎉", {
+      position: "bottom-center",
+    });
+  } else {
+    favorites.value.splice(movieIndex, 1);
+    toast.success("Фильм удалён из избранного ❌", {
+      position: "bottom-center",
+    });
+  }
+
+  localStorage.setItem("favorites", JSON.stringify(favorites.value));
+};
 
 onMounted(() => {
   loadRandomMovies();
@@ -306,7 +340,6 @@ onMounted(() => {
             :key="movie.id"
             class="similar-card"
           >
-            <!-- Карточка фильма -->
             <img :src="movie.poster || defaultPoster" alt="Poster" />
             <div class="input-wrapper">
               <input
@@ -327,8 +360,6 @@ onMounted(() => {
               </ul>
             </div>
           </div>
-
-          <!-- Кнопка добавления -->
           <div
             v-if="similarMovies.length < 3"
             class="similar-card add-card"
@@ -337,10 +368,8 @@ onMounted(() => {
             +
           </div>
         </div>
-
-        <!-- Кнопка внизу для подбора фильма -->
         <button class="select-movie" @click="fetchRecommendedMovies">
-          Подобрать фильм
+          Похожие фильмы
         </button>
       </section>
 
@@ -351,9 +380,7 @@ onMounted(() => {
               <IconLeft />
             </button>
           </div>
-          <!-- Контейнер для слайдов -->
           <div class="movie-slider">
-            <!-- Слайды фильмов -->
             <div
               class="movie-slide"
               v-for="(movie, index) in recommendedMovies"
@@ -366,7 +393,6 @@ onMounted(() => {
                 dark
                 max-width="1200"
               >
-                <!-- Постер -->
                 <v-img
                   :src="getPosterUrl(movie.poster_path)"
                   width="20vw"
@@ -374,38 +400,36 @@ onMounted(() => {
                   class="mr-4 rounded"
                   cover
                 ></v-img>
-
-                <!-- Информация -->
                 <div class="d-flex flex-column flex-grow-1">
-                  <!-- Название -->
-                  <h2 class="text-uppercase mb-1">{{ movie.title }}</h2>
-
-                  <!-- Год / Страна / Длительность -->
+                  <div
+                    class="d-flex flex-row justify-space-between align-center"
+                  >
+                    <h2 class="text-uppercase mb-1">{{ movie.title }}</h2>
+                    <button
+                      class="add-favorite-btn"
+                      :class="{ save: isFavorite(movie.id) }"
+                      @click="addToFavorites(movie)"
+                    >
+                      <IconFavorite />
+                    </button>
+                  </div>
                   <div class="text-blue mb-2">
                     {{ getYear(movie.release_date) }} •
                     {{ movie.production_countries?.[0]?.name || "—" }} •
                     {{ movie.runtime }} мин
                   </div>
-
-                  <!-- Жанры -->
                   <div class="mb-1">
                     <span class="text-grey">Жанры: </span>
                     {{ getGenres(movie.genres) }}
                   </div>
-
-                  <!-- Режиссёр -->
                   <div class="mb-1">
                     <span class="text-grey">Режиссёр: </span>
                     {{ getDirector(movie.credits?.crew) }}
                   </div>
-
-                  <!-- Актёры -->
                   <div class="mb-2">
                     <span class="text-grey">Актёры: </span>
                     {{ getTopActors(movie.credits?.cast) }}
                   </div>
-
-                  <!-- Рейтинг -->
                   <div class="mb-2 pa-0 d-flex align-center">
                     <IconRaiting />
                     <div class="d-flex align-center ml-2" style="gap: 20px">
@@ -414,8 +438,6 @@ onMounted(() => {
                       }}</span>
                     </div>
                   </div>
-
-                  <!-- Описание -->
                   <div>
                     <div>
                       {{ movie.overview || "Увы, описания нет" }}
@@ -425,8 +447,6 @@ onMounted(() => {
               </v-card>
             </div>
           </div>
-
-          <!-- Навигационные кнопки -->
           <div class="nav-btn right">
             <button @click="nextSlide" icon>
               <IconRight />
@@ -440,12 +460,12 @@ onMounted(() => {
 
 <style scoped>
 .card-main {
-  background-color: #1c1c1e; /* Темная подложка */
-  border-radius: 20px; /* Закругленные углы */
-  box-shadow: 0 1px 30px 5px rgba(77, 92, 255, 0.445); /* Светлая тень */
+  background-color: #1c1c1e;
+  border-radius: 20px;
+  box-shadow: 0 1px 30px 5px rgba(77, 92, 255, 0.445);
   padding: 2rem;
   width: 90vw;
-  margin: 2rem auto; /* Центрируем */
+  margin: 2rem auto;
 }
 
 .home {
@@ -470,7 +490,7 @@ onMounted(() => {
   height: 90%;
   object-fit: cover;
   border-radius: 16px;
-  box-shadow: 0px 10px 20px -5px rgba(77, 92, 255, 0.445); /* Подсветка снизу */
+  box-shadow: 0px 10px 20px -5px rgba(77, 92, 255, 0.445);
 }
 
 .swiper-slide:hover .carousel-img {
@@ -574,7 +594,6 @@ onMounted(() => {
 .suggestions::-webkit-scrollbar {
   display: none;
 }
-/* Элементы внутри списка */
 .suggestions li {
   display: flex;
   font-size: 12px;
@@ -642,7 +661,7 @@ onMounted(() => {
 .movie-slider {
   display: flex;
   transition: transform 0.5s ease-in-out;
-  overflow: hidden; /* Прячет лишний контент, выходящий за пределы */
+  overflow: hidden;
 }
 
 .movie-slide {
@@ -655,8 +674,8 @@ onMounted(() => {
 
 .movie-card {
   width: 100%;
-  max-width: 1200px; /* Ограничиваем максимальную ширину карточки */
-  min-height: 70vh; /* Ограничиваем высоту карточки */
+  max-width: 1200px;
+  min-height: 70vh;
   display: flex;
   box-shadow: 0 1px 30px 5px rgba(77, 92, 255, 0.445);
 }
@@ -732,5 +751,33 @@ onMounted(() => {
   display: block;
   margin: 10px 0;
   font-style: italic;
+}
+.add-favorite-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  transition: transform 0.2s ease, fill 0.2s ease;
+}
+
+.add-favorite-btn svg {
+  fill: #797979;
+  width: 30px;
+  height: 30px;
+  transition: fill 0.2s ease;
+}
+
+.add-favorite-btn:hover svg {
+  fill: #0084ff;
+  transform: scale(1.3);
+}
+
+.add-favorite-btn:active svg {
+  fill: #003d80;
+  transform: scale(0.95);
+}
+
+.save {
+  fill: #003d80;
 }
 </style>

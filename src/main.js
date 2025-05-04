@@ -6,7 +6,7 @@ import * as directives from 'vuetify/directives'
 import { createApp } from 'vue'
 import router from './router/router'
 import App from './App.vue'
-import Toast from 'vue-toastification'
+import Toast, { POSITION } from "vue-toastification";
 import 'vue-toastification/dist/index.css'
 
 const vuetify = createVuetify({
@@ -14,4 +14,10 @@ const vuetify = createVuetify({
     directives,
   })
 
-createApp(App).use(vuetify).use(router).use(Toast).mount('#app')
+createApp(App).use(vuetify).use(router).use(Toast, {
+  position: POSITION.BOTTOM_CENTER, 
+  timeout: 3000,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+}).mount('#app')

@@ -1,45 +1,36 @@
 <script setup>
+import { useRoute } from 'vue-router'
 import IconUser from './components/icons/IconUser.vue';
 import IconFavorite from './components/icons/IconFavorite.vue';
 
-
+const route = useRoute()
 </script>
 
 <template>
-  <header>
-    <h1>FilmFinder</h1>
-    <button class="button-icon"><IconFavorite /></button>
-    <button class="button-icon"><IconUser /></button>
+  <header v-if="route.path !== '/login'">
+    <h1 @click="$router.push('/')">MovieAs</h1>
+    <button class="button-icon" @click="$router.push('/favorites')">
+      <IconFavorite />
+    </button>
+    <button class="button-icon" @click="$router.push('/login')">
+      <IconUser />
+    </button>
   </header>
-
-  <main>
-    <section class="panel">
-      <input type="text" placeholder="Поиск фильма..." class="search-input" />
-
-      <div class="cards">
-        <div class="movie-card">
-          <img src="https://via.placeholder.com/100x150?text=Poster+1" alt="Movie Poster 1" />
-        </div>
-        <div class="movie-card">
-          <img src="https://via.placeholder.com/100x150?text=Poster+2" alt="Movie Poster 2" />
-        </div>
-      </div>
-    </section>
-  </main>
+  <router-view />
 </template>
 
 <style scoped>
 header {
-  background-color: var(--vt-c-black-mute);
+  background-color: var(--vt-c-black);
   display: grid;
   grid-template-columns: 90% 5% 5%;
   padding: 1rem;
   width: 100vw;
-  border-bottom: 2px solid var(--vt-c-blue-dark);
-  box-shadow: 0 10px 10px -10px #440087;
+  
 }
 h1 {
-  color: white;
+  color: rgba(255, 255, 255, 0.753); /* Цвет текста */
+  text-shadow: 0px 4px 8px rgba(68, 0, 135, 0.6), 0px 0px 25px rgba(68, 0, 135, 0.6); /* Тень */
 }
 
 .button-icon{
@@ -72,23 +63,5 @@ h1 {
   outline: none;
 }
 
-.cards {
-  display: flex;
-  gap: 1rem;
-}
-
-.movie-card {
-  width: 100px;
-  height: 150px;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-}
-
-.movie-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
 
 </style>

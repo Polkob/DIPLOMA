@@ -1,3 +1,8 @@
-Flask
 requests
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-CORS
+psycopg2-binary
+Flask-Bcrypt
 python-dotenv

@@ -1,4 +1,4 @@
-from tmdb_api import get_similar_movies
+from app.utils.tmdb_api import get_similar_movies
 from itertools import chain
 
 def recommend_movies(movie_ids):

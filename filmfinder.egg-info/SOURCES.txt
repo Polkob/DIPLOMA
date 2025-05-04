@@ -1,0 +1,16 @@
+setup.py
+app/__init__.py
+app/app.py
+app/models.py
+app/resources.py
+app/routes/__init__.py
+app/routes/auth.py
+app/routes/favorites.py
+app/routes/movies.py
+app/utils/__init__.py
+app/utils/tmdb_api.py
+filmfinder.egg-info/PKG-INFO
+filmfinder.egg-info/SOURCES.txt
+filmfinder.egg-info/dependency_links.txt
+filmfinder.egg-info/requires.txt
+filmfinder.egg-info/top_level.txt

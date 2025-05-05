@@ -127,6 +127,11 @@ const toggleFavorite = () => {
   width: 70vw;
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-content::-webkit-scrollbar{
+  display: none;
 }
 .close-x {
   position: absolute;
@@ -149,7 +154,7 @@ const toggleFavorite = () => {
 .film-poster {
   width: auto;
   min-width: 220px;
-  height: 100%;
+  height: 80%;
   min-height: 330px;
   max-height: 100%;
   object-fit: cover;
@@ -220,5 +225,136 @@ const toggleFavorite = () => {
 .film-description {
   font-size: 1rem;
   margin-top: 8px;
+}
+
+@media (max-width: 1200px) {
+  .modal-content {
+    width: 80vw;
+    padding: 24px;
+  }
+
+  .film-details {
+    flex-direction: column;
+    gap: 24px;
+    min-height: auto;
+  }
+
+  .film-poster {
+    width: 100%;
+    max-width: 300px;
+    min-height: 250px;
+    margin: 0 auto;
+  }
+
+  .film-header h2 {
+    font-size: 1.8rem;
+  }
+
+  .film-meta {
+    font-size: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .film-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .genre {
+    font-size: 0.9rem;
+    padding: 2px 8px;
+  }
+
+  .film-crew, .film-description {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 90vw;
+    padding: 20px;
+  }
+
+  .film-details {
+    flex-direction: column;
+    gap: 20px;
+    min-height: auto;
+  }
+
+  .film-poster {
+    width: 100%;
+    max-width: 300px;
+    min-height: 250px;
+    margin: 0 auto;
+  }
+
+  .film-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .film-meta {
+    font-size: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  .film-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .genre {
+    font-size: 0.85rem;
+    padding: 2px 8px;
+  }
+
+  .film-crew {
+    font-size: 0.9rem;
+  }
+
+  .film-description {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95vw;
+    padding: 16px;
+  }
+
+  .close-x {
+    top: 12px;
+    right: 16px;
+    font-size: 1.8rem;
+  }
+
+  .film-poster {
+    max-width: 250px;
+    min-height: 200px;
+  }
+
+  .film-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .film-meta {
+    font-size: 0.8rem;
+  }
+
+  .genre {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+  }
+
+  .film-crew {
+    font-size: 0.8rem;
+  }
+
+  .film-description {
+    font-size: 0.8rem;
+  }
 }
 </style>

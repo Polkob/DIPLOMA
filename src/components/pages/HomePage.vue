@@ -994,4 +994,469 @@ onMounted(() => {
   color: #42a5f5;
   font-size: 0.95em;
 }
+
+/* Медиа-запросы для адаптивности */
+@media screen and (max-width: 1200px) {
+  .card-main {
+    width: 95vw;
+    padding: 1rem;
+    box-shadow: none;
+  }
+  
+  .carousel-wrapper {
+    width: 90%;
+  }
+
+  .similar-card {
+    width: calc(33.33% - 20px);
+    min-height: auto;
+    max-height: 300px;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    background-color: #252525;
+    border-radius: 12px;
+  }
+
+  .similar-card img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  .similar-card input {
+    width: 100%;
+    font-size: 13px;
+    padding: 8px;
+    margin-bottom: 0;
+    background: #1c1c1e;
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 6px;
+  }
+
+  .suggestions {
+    width: 100%;
+    left: 0;
+    max-height: 200px;
+    margin-top: 4px;
+    background: #1c1c1e;
+    border: 1px solid #333;
+    border-radius: 6px;
+  }
+
+  .suggestions li {
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid #333;
+  }
+
+  .suggestions li:last-child {
+    border-bottom: none;
+  }
+
+  .suggestions img {
+    width: 30px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .movie-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: left;
+    box-shadow: none !important;
+  }
+
+  .movie-card .v-img {
+    width: 100% !important;
+    max-width: 250px !important;
+    margin-bottom: 15px;
+  }
+
+  .movie-card h2 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+
+  .movie-card .text-blue {
+    font-size: 0.85rem;
+  }
+
+  .movie-card .text-grey {
+    font-size: 0.8rem;
+  }
+
+  .movie-card div {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .movie-card .mb-1 {
+    margin-bottom: 4px;
+  }
+
+  .movie-card .mb-2 {
+    margin-bottom: 8px;
+  }
+
+  .movie-card .d-flex {
+    gap: 10px !important;
+  }
+
+  .nav-btn button {
+    width: 34px;
+    height: 34px;
+    padding: 7px;
+  }
+
+  .nav-btn button svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .search-bar-wrapper {
+    width: 90%;
+  }
+
+  .search-bar {
+    font-size: 0.9rem;
+  }
+
+  .search-bar::placeholder {
+    font-size: 0.85rem;
+  }
+
+  .search-suggestions {
+    max-height: 300px;
+  }
+
+  .search-suggestions li {
+    padding: 10px 15px;
+  }
+
+  .search-thumb {
+    width: 35px;
+    height: 52px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .card-main {
+    width: 95vw;
+    padding: 1rem;
+    box-shadow: none;
+  }
+
+  .home {
+    padding: 1rem;
+  }
+
+  .carousel-wrapper {
+    width: 95%;
+  }
+
+  .buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .buttons button {
+    width: 100%;
+  }
+
+  .similar {
+    padding: 20px 10px;
+  }
+
+  .similar h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+  }
+
+  .similar-cards {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .similar-card {
+    width: calc(50% - 8px);
+    height: auto;
+    min-height: auto;
+    padding: 8px;
+    background-color: #252525;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .similar-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+
+  .similar-card input {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: #1c1c1e;
+    color: #fff;
+    border: 1px solid #333;
+    margin-bottom: 0;
+  }
+
+  .suggestions {
+    width: 100%;
+    left: 0;
+    font-size: 11px;
+    background: #1c1c1e;
+    border: 1px solid #333;
+    border-radius: 6px;
+    margin-top: 4px;
+    max-height: 180px;
+  }
+
+  .select-movie {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  /* Стили для навигационных стрелок */
+  .nav-btn button {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    background-color: rgba(77, 92, 255, 0.8);
+  }
+
+  .nav-btn button svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Стили для карточек результатов подбора */
+  .movie-card {
+    padding: 12px !important;
+    flex-direction: column;
+    align-items: center;
+    text-align: left;
+    box-shadow: none !important;
+  }
+
+  .movie-card .v-img {
+    width: 100% !important;
+    max-width: 200px !important;
+    margin-bottom: 12px;
+    border-radius: 8px;
+  }
+
+  .movie-card h2 {
+    font-size: 1rem;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .movie-card .text-blue {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+  }
+
+  .movie-card .text-grey {
+    font-size: 0.75rem;
+    color: #999;
+  }
+
+  .movie-card .mb-1 {
+    margin-bottom: 3px;
+    font-size: 0.75rem;
+  }
+
+  .movie-card .mb-2 {
+    margin-bottom: 6px;
+    font-size: 0.75rem;
+  }
+
+  .movie-card .d-flex {
+    gap: 8px !important;
+  }
+
+  .movie-card .add-favorite-btn {
+    transform: scale(0.8);
+  }
+
+  .search-bar {
+    font-size: 0.85rem;
+  }
+
+  .search-bar::placeholder {
+    font-size: 0.8rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .card-main {
+    margin: 0.5rem auto;
+    padding: 0.5rem;
+    box-shadow: none;
+  }
+
+  .home {
+    padding: 0.5rem;
+  }
+
+  .carousel-wrapper {
+    padding: 5px;
+  }
+
+  .similar {
+    padding: 15px 8px;
+  }
+
+  .similar h2 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+
+  .similar-cards {
+    gap: 6px;
+  }
+
+  .similar-card {
+    width: calc(50% - 6px);
+    padding: 6px;
+  }
+
+  .similar-card img {
+    height: 100px;
+    margin-bottom: 6px;
+  }
+
+  .similar-card input {
+    font-size: 11px;
+    padding: 5px 6px;
+  }
+
+  .suggestions {
+    max-height: 160px;
+  }
+
+  .select-movie {
+    margin-top: 15px;
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .search-bar {
+    font-size: 0.8rem;
+    padding: 10px 10px 10px 40px;
+  }
+
+  .search-bar::placeholder {
+    font-size: 0.55rem;
+  }
+
+  .movie-card {
+    padding: 8px !important;
+    box-shadow: none !important;
+  }
+
+  .movie-card .v-img {
+    max-width: 150px !important;
+    margin-bottom: 8px;
+  }
+
+  .movie-card h2 {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+
+  .movie-card .text-blue {
+    font-size: 0.7rem;
+    margin-bottom: 3px;
+  }
+
+  .movie-card .text-grey {
+    font-size: 0.65rem;
+  }
+
+  .movie-card .mb-1 {
+    margin-bottom: 2px;
+    font-size: 0.7rem;
+  }
+
+  .movie-card .mb-2 {
+    margin-bottom: 4px;
+    font-size: 0.7rem;
+  }
+
+  .movie-card div {
+    font-size: 0.7rem;
+    line-height: 1.2;
+  }
+
+  .movie-card .d-flex {
+    gap: 6px !important;
+  }
+
+  .movie-card .add-favorite-btn {
+    transform: scale(0.7);
+  }
+
+  .movie-card .pa-4 {
+    padding: 8px !important;
+  }
+
+  /* Стили для контейнера с карточками */
+  .movie-slider {
+    width: 100%;
+    padding: 0 4px;
+  }
+
+  .movie-slide {
+    padding: 8px 4px;
+  }
+
+  /* Стили для навигационных стрелок */
+  .nav-btn button {
+    width: 28px;
+    height: 28px;
+    padding: 5px;
+  }
+
+  .nav-btn button svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Стили для Swiper адаптивности */
+@media screen and (max-width: 1200px) {
+  .swiper-slide {
+    width: 300px !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .swiper-slide {
+    width: 250px !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .swiper-slide {
+    width: 200px !important;
+  }
+}
 </style>

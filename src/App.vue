@@ -72,6 +72,31 @@ header {
 .button-icon:hover {
   background-color: var(--vt-c-black-mute-2);
 }
+
+@media (max-width: 768px) {
+  header {
+    grid-template-columns: 80% 10% 10%;
+    padding: 0.75rem;
+  }
+
+  .button-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    grid-template-columns: 75% 12.5% 12.5%;
+    padding: 0.5rem;
+  }
+
+  .button-icon {
+    width: 35px;
+    height: 35px;
+  }
+}
+
 .panel {
   background-color: #1a1a1a;
   padding: 1rem;

@@ -5,7 +5,13 @@
       <p>Нет избранных фильмов</p>
     </div>
     <div v-else class="favorites-list">
-      <div v-for="movie in favorites" :key="movie.id" class="favorite-item">
+      <div
+        v-for="movie in favorites"
+        :key="movie.id"
+        class="favorite-item"
+        @click="openDetails(movie)"
+        style="cursor:pointer"
+      >
         <div class="favorite-poster-wrapper">
           <img
             :src="getPosterUrl(movie.poster_path)"
@@ -20,13 +26,25 @@
         </div>
       </div>
     </div>
+
+    <FilmDetailsModal
+      v-if="showDetails"
+      :show="showDetails"
+      :movie="detailsMovie"
+      @close="closeDetails"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
+import FilmDetailsModal from '@/components/modals/FilmDetailsModal.vue'
+import axios from 'axios'
 
 const favorites = ref([]);
+const showDetails = ref(false)
+const detailsMovie = ref(null)
+const API_KEY = "54a2541709252b5e3de68b7642666940" // твой ключ
 
 onMounted(() => {
   const storedFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
@@ -40,24 +58,40 @@ const removeFromFavorites = (movieId) => {
   favorites.value = updatedFavorites;
   localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
 };
+
 const getPosterUrl = (path) => {
   console.log(path);
   return path
     ? `https://image.tmdb.org/t/p/w500${path}`
     : "https://via.placeholder.com/500x750?text=Нет+постера";
 };
+
+const openDetails = async (movie) => {
+  // Загружаем детали фильма с credits
+  const { data } = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, {
+    params: {
+      api_key: API_KEY,
+      language: 'ru-RU',
+      append_to_response: 'credits'
+    }
+  })
+  detailsMovie.value = data
+  showDetails.value = true
+}
+
+const closeDetails = () => showDetails.value = false
 </script>
 
 <style scoped>
 .favorites-page {
   padding: 2rem;
-  max-width: 1400px;
+  max-width: 100vw;
 }
 
 h1 {
   text-align: center;
-  font-size: 2rem;
-  margin-bottom: 20px;
+  font-size: 1.7rem;
+  margin-bottom: 40px;
 }
 
 .no-favorites p {
@@ -67,8 +101,13 @@ h1 {
 
 .favorites-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  justify-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .favorite-item {

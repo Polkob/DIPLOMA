@@ -1,57 +1,61 @@
 <template>
-  <div v-if="showModal" class="modal">
+  <div v-if="show" class="modal-backdrop" @click.self="close">
     <div class="modal-content">
-      <span class="close-btn" @click="closeModal">&times;</span>
+      <span class="close-x" @click="close">&times;</span>
       <div class="film-details">
-        <img :src="getImageUrl(selectedMovie.poster_path)" class="film-poster" />
+        <img :src="getImageUrl(movie.poster_path)" class="film-poster" />
         <div class="film-info">
           <div class="film-header">
-            <button class="favorite-btn" @click="addToFavorites">
+            <button class="favorite-btn" @click="toggleFavorite">
               <IconFavorite :filled="isFavorite" />
             </button>
-            <h2>{{ selectedMovie.title }}</h2>
+            <h2>{{ movie.title }}</h2>
           </div>
           <div class="film-meta">
-            <span class="meta blue">{{ getYear(selectedMovie.release_date) }}</span>
-            <span class="meta blue"> {{ getCountry(selectedMovie) }}</span>
+            <span class="meta blue">{{ getYear(movie.release_date) }}</span>
+            <span class="meta blue">• {{ movie.runtime }} мин •{{ getCountry(movie) }}</span>
           </div>
           <div class="film-genres">
-            <span v-if="selectedMovie.genres"><b>Жанры:</b> {{ selectedMovie.genres }}</span>
+            <span v-for="genre in movie.genres" :key="genre.id" class="genre">
+              {{ genre.name }}
+            </span>
           </div>
           <div class="film-crew">
-            <div v-if="selectedMovie.actors"><b>Актёры:</b> {{ selectedMovie.actors }}</div>
+            <div><b>Режиссёр:</b> {{ getDirectors(movie.credits?.crew) }}</div>
+            <div><b>Актёры:</b> {{ getActors(movie.credits?.cast) }}</div>
+          </div>
+          <div class="film-rating mb-2 pa-0 d-flex align-center">
+            <IconRaiting />
+            <div class="d-flex align-center ml-2" style="gap: 20px">
+              <span style="font-size: 14px">{{ movie.vote_average }}</span>
+            </div>
           </div>
           <div class="film-description">
             <b>Описание:</b>
-            <p>{{ selectedMovie.description || "Нет описания" }}</p>
+            <p>{{ movie.overview || "Нет описания" }}</p>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <v-snackbar v-model="snackbar" timeout="3000" color="green" location="top right">
-  {{ snackbarText }}
-</v-snackbar>
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, onMounted, computed, watch } from "vue";
-import { useToast } from "vue-toastification";
 import IconFavorite from '@/components/icons/IconFavorite.vue'
+import IconRaiting from '@/components/icons/IconRaiting.vue'
 import defaultPoster from '@/assets/film-poster-default.webp'
-
-const toast = useToast();
+import { ref, computed, watch } from 'vue'
+import { useToast } from "vue-toastification";
 
 const props = defineProps({
-  showModal: Boolean,
-  selectedMovie: Object,
-});
+  show: Boolean,
+  movie: Object
+})
+const emit = defineEmits(['close'])
 
-const emit = defineEmits(["update:showModal"]);
+const close = () => emit('close')
 
-const closeModal = () => {
-  emit("update:showModal", false);
-};
+const toast = useToast();
 
 const getImageUrl = (path) => {
   return path
@@ -60,25 +64,29 @@ const getImageUrl = (path) => {
 }
 const getYear = (date) => date ? new Date(date).getFullYear() : '—'
 const getCountry = (movie) => movie.production_countries?.[0]?.name || '—'
+const getDirectors = (crew) => {
+  if (!crew) return '—'
+  return crew.filter(p => p.job === 'Director').map(p => p.name).join(', ') || '—'
+}
+const getActors = (cast) => {
+  if (!cast) return '—'
+  return cast.slice(0, 5).map(a => a.name).join(', ') || '—'
+}
 
-// Избранное
+// Проверка, в избранном ли фильм
 const isFavorite = ref(false)
-
 watch(
-  () => props.selectedMovie,
+  () => props.movie,
   (movie) => {
-    if (!movie || !movie.id) {
-      isFavorite.value = false
-      return
-    }
+    if (!movie) return
     const favs = JSON.parse(localStorage.getItem('favorites') || '[]')
     isFavorite.value = favs.some(f => f.id === movie.id)
   },
   { immediate: true }
 )
 
-const addToFavorites = () => {
-  if (!props.selectedMovie || !props.selectedMovie.id) return;
+const toggleFavorite = () => {
+  if (!props.movie || !props.movie.id) return;
 
   // Проверка на авторизацию
   const isAuth = localStorage.getItem('isAuthenticated') === 'true';
@@ -90,23 +98,25 @@ const addToFavorites = () => {
   }
 
   let favs = JSON.parse(localStorage.getItem('favorites') || '[]')
-  const idx = favs.findIndex(f => f.id === props.selectedMovie.id)
+  const idx = favs.findIndex(f => f.id === props.movie.id)
   if (idx === -1) {
-    favs.push(props.selectedMovie)
-    localStorage.setItem('favorites', JSON.stringify(favs))
+    favs.push(props.movie)
     isFavorite.value = true
-    toast.success("Фильм добавлен в избранное 🎉", { position: "bottom-center" })
+    toast.success('Фильм добавлен в избранное 🎉', { position: "bottom-center" })
   } else {
-    toast.info("Фильм уже в избранном 🤔", { position: "bottom-center" })
+    favs.splice(idx, 1)
+    isFavorite.value = false
+    toast.info('Фильм удалён из избранного ❌', { position: "bottom-center" })
   }
+  localStorage.setItem('favorites', JSON.stringify(favs))
 }
 </script>
 
 <style scoped>
-.modal {
+.modal-backdrop {
   position: fixed;
   top: 0; left: 0; width: 100vw; height: 100vh;
-  background-color: rgba(0, 0, 0, 0.7);
+  background: rgba(0,0,0,0.7);
   display: flex; justify-content: center; align-items: center;
   z-index: 2000;
 }
@@ -118,27 +128,30 @@ const addToFavorites = () => {
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   position: relative;
 }
-.close-btn {
+.close-x {
   position: absolute;
-  top: 18px; right: 24px;
+  top: 18px;
+  right: 24px;
   font-size: 2.2rem;
   color: #fff;
   cursor: pointer;
   z-index: 2;
   transition: color 0.2s;
 }
-.close-btn:hover { color: #8e2de2; }
+.close-x:hover { color: #8e2de2; }
 .film-details {
   display: flex;
   gap: 32px;
   align-items: stretch;
   min-height: 330px;
+  height: 100%;
 }
 .film-poster {
   width: auto;
   min-width: 220px;
   height: 100%;
   min-height: 330px;
+  max-height: 100%;
   object-fit: cover;
   border-radius: 12px;
   background: #222;
@@ -183,8 +196,29 @@ const addToFavorites = () => {
 }
 .meta.blue { color: #42a5f5; }
 .meta.purple { color: #a259ec; }
-.film-genres, .film-crew, .film-description {
+.film-genres {
+  margin-bottom: 8px;
+}
+.genre {
+  display: inline-block;
+  background: #222;
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 10px;
+  margin-right: 6px;
+  font-size: 0.95rem;
+}
+.film-crew {
   font-size: 1rem;
   margin-bottom: 8px;
+}
+.film-rating {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.film-description {
+  font-size: 1rem;
+  margin-top: 8px;
 }
 </style>

@@ -37,3 +37,25 @@ html {
   overflow: hidden;
 }
 
+#__vue-devtools-toggle {
+  display: none !important;
+}
+
+[data-v-inspector-toggle] {
+  display: none !important;
+}
+
+#__vue-devtools-container__,
+.vue-devtools__anchor,
+.vue-devtools__panel,
+.vue-devtools__anchor-btn,
+.vue-devtools__panel-content,
+.vue-devtools__inspector-button,
+.vue-devtools-frame,
+#vue-devtools-iframe,
+#vue-devtools-toggle {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -9999 !important;
+}

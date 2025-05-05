@@ -16,6 +16,7 @@ import IconRaiting from "../../components/icons/IconRaiting.vue";
 import IconLeft from "../../components/icons/IconLeft.vue";
 import IconRight from "../../components/icons/IconRight.vue";
 import IconFavorite from "@/components/icons/IconFavorite.vue";
+import FilmDetailsModal from '@/components/modals/FilmDetailsModal.vue'
 
 const API_KEY = "54a2541709252b5e3de68b7642666940";
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -23,6 +24,9 @@ const BASE_URL = "https://api.themoviedb.org/3";
 const showPicker = ref(false)
 const showResults = ref(false)
 const pickedMovies = ref([])
+const pickedMoviesPage = ref(1)
+const pickedMoviesTotalPages = ref(1)
+const pickedMoviesQuery = ref(null)
 const expanded = ref(false);
 const recommendedMovies = ref([]);
 const randomMovies = ref([]);
@@ -42,9 +46,13 @@ const favorites = ref(
     : []
 );
 const currentSlide = ref(0);
+const showDetails = ref(false)
+const detailsMovie = ref(null)
+const searchQuery = ref('')
+const searchResults = ref([])
 
 const isFavorite = (id) => {
-  return favorites.value.some((f) => f.id === id) ? true : false;
+  return favorites.value.some((f) => f.id === id);
 };
 const nextSlide = () => {
   if (currentSlide.value < recommendedMovies.value.length - 1) {
@@ -198,6 +206,8 @@ const openMovieModal = async () => {
         .map((actor) => actor.name)
         .join(", "),
       description: movie.overview,
+      release_date: movieDetails.data.release_date,
+      production_countries: movieDetails.data.production_countries,
     };
 
     showModal.value = true;
@@ -252,32 +262,46 @@ const selectSuggestion = (index, suggestion) => {
   similarMovies.value[index].suggestions = [];
 };
 
-const handlePick = async ({ genre, year, country }) => {
-  if (!genre || !year || !country) {
+const handlePick = async ({ genre, yearStart, yearEnd, country }) => {
+  if (!genre || !yearStart || !yearEnd || !country) {
     console.error("Не все параметры выбраны");
     return;
   }
+  pickedMovies.value = []
+  pickedMoviesPage.value = 1
+  pickedMoviesQuery.value = { genre, yearStart, yearEnd, country }
+  await fetchPickedMovies()
+  showPicker.value = false
+  showResults.value = true
+};
+
+const fetchPickedMovies = async () => {
+  const { genre, yearStart, yearEnd, country } = pickedMoviesQuery.value
   try {
     const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
       params: {
         api_key: API_KEY,
         language: 'ru-RU',
         with_genres: genre,
-        primary_release_year: year,
-        region: country,
+        'primary_release_date.gte': `${yearStart}-01-01`,
+        'primary_release_date.lte': `${yearEnd}-12-31`,
+        with_origin_country: country,
         sort_by: 'popularity.desc',
-        page: 1
+        page: pickedMoviesPage.value
       }
     })
-
-    pickedMovies.value = response.data.results
-    console.log(pickedMovies)
-    showPicker.value = false
-    showResults.value = true
+    // Добавляем новые фильмы к уже найденным
+    pickedMovies.value = [...pickedMovies.value, ...response.data.results]
+    pickedMoviesTotalPages.value = response.data.total_pages
   } catch (error) {
     console.error('Ошибка при подборе фильмов:', error)
   }
-};
+}
+
+const loadMorePickedMovies = async () => {
+  pickedMoviesPage.value++
+  await fetchPickedMovies()
+}
 
 const addToFavorites = (movie) => {
   const isAuth = localStorage.getItem("isAuthenticated") === "true";
@@ -306,6 +330,51 @@ const addToFavorites = (movie) => {
   localStorage.setItem("favorites", JSON.stringify(favorites.value));
 };
 
+const openDetails = async (movie) => {
+  // Загружаем детали фильма с credits
+  const { data } = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, {
+    params: {
+      api_key: API_KEY,
+      language: 'ru-RU',
+      append_to_response: 'credits'
+    }
+  })
+  detailsMovie.value = data
+  showDetails.value = true
+}
+const closeDetails = () => showDetails.value = false
+
+const onSearchInput = async () => {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = []
+    return
+  }
+  const { data } = await axios.get('https://api.themoviedb.org/3/search/movie', {
+    params: {
+      api_key: API_KEY,
+      language: 'ru-RU',
+      query: searchQuery.value,
+      page: 1
+    }
+  })
+  searchResults.value = data.results
+}
+
+const selectSearchedMovie = async (movie) => {
+  // Загружаем детали фильма с credits
+  const { data } = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, {
+    params: {
+      api_key: API_KEY,
+      language: 'ru-RU',
+      append_to_response: 'credits'
+    }
+  })
+  detailsMovie.value = data
+  showDetails.value = true
+  searchResults.value = []
+  searchQuery.value = ''
+}
+
 onMounted(() => {
   loadRandomMovies();
 });
@@ -314,16 +383,42 @@ onMounted(() => {
 <template>
   <div class="card-main">
     <main class="home">
-      <span class="span-citata">
-        Фильм как новый мир — открой его с MovieAs.
-      </span>
+      <div class="search-bar-wrapper">
+        <span class="search-icon">
+          <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7" stroke="#42a5f5" stroke-width="2"/>
+            <line x1="16.5" y1="16.5" x2="22" y2="22" stroke="#42a5f5" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <input
+          v-model="searchQuery"
+          @input="onSearchInput"
+          type="text"
+          placeholder="Фильм как новый мир — открой его с MovieAs..."
+          class="search-bar"
+          autocomplete="off"
+        />
+        <ul v-if="searchResults.length && searchQuery" class="search-suggestions">
+          <li
+            v-for="movie in searchResults"
+            :key="movie.id"
+            @click="selectSearchedMovie(movie)"
+          >
+            <img :src="getPosterUrl(movie.poster_path)" alt="" class="search-thumb" />
+            <span>{{ movie.title }} <span class="search-year">({{ getYear(movie.release_date) }})</span></span>
+          </li>
+        </ul>
+      </div>
 
       <div class="carousel-wrapper">
         <Swiper
-          :effect="'coverflow'"
-          :grabCursor="true"
-          :centeredSlides="true"
-          :slidesPerView="3"
+          :loop="true"
+          :slides-per-view="3"
+          :centered-slides="true"
+          :space-between="20"
+          :autoplay="{ delay: 3000, disableOnInteraction: false }"
+          :modules="[Autoplay, EffectCoverflow, Pagination]"
+          effect="coverflow"
           :coverflowEffect="{
             rotate: 0,
             stretch: 30,
@@ -332,20 +427,13 @@ onMounted(() => {
             scale: 1,
             slideShadows: false,
           }"
-          :pagination="{
-            el: '.swiper-pagination',
-            clickable: true,
-          }"
-          :navigation="{
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-          }"
-          :modules="[Autoplay, EffectCoverflow, Pagination]"
-          :autoplay="{ delay: 3000, disableOnInteraction: false }"
-          space-between="20"
-          loop
         >
-          <SwiperSlide v-for="movie in randomMovies" :key="movie.id">
+          <SwiperSlide
+            v-for="movie in randomMovies"
+            :key="movie.id"
+            @click="openDetails(movie)"
+            style="cursor:pointer"
+          >
             <img :src="movie.poster" :alt="movie.title" class="carousel-img" />
           </SwiperSlide>
         </Swiper>
@@ -368,7 +456,9 @@ onMounted(() => {
         v-if="showResults"
         :show="showResults"
           :movies="pickedMovies"
+          :canLoadMore="pickedMoviesPage < pickedMoviesTotalPages"
           @close="showResults = false"
+          @loadMore="loadMorePickedMovies"
         />
       <RandomFilm
         :showModal="showModal"
@@ -453,7 +543,7 @@ onMounted(() => {
                       :class="{ save: isFavorite(movie.id) }"
                       @click="addToFavorites(movie)"
                     >
-                      <IconFavorite />
+                      <IconFavorite :filled="isFavorite(movie.id)" />
                     </button>
                   </div>
                   <div class="text-blue mb-2">
@@ -499,6 +589,12 @@ onMounted(() => {
       </div>
     </main>
   </div>
+  <FilmDetailsModal
+    v-if="showDetails"
+    :show="showDetails"
+    :movie="detailsMovie"
+    @close="closeDetails"
+  />
 </template>
 
 <style scoped>
@@ -528,7 +624,7 @@ onMounted(() => {
 }
 
 .carousel-img {
-  margin: 20px;
+  margin: 10px;
   width: 100%;
   height: 90%;
   object-fit: cover;
@@ -794,33 +890,108 @@ onMounted(() => {
   display: block;
   margin: 10px 0;
   font-style: italic;
+  text-shadow: none;
 }
 .add-favorite-btn {
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 3px;
-  transition: transform 0.2s ease, fill 0.2s ease;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
 }
 
-.add-favorite-btn svg {
-  fill: #797979;
-  width: 30px;
-  height: 30px;
-  transition: fill 0.2s ease;
+.add-favorite-btn .icon {
+  /* убери fill отсюда, если используешь через проп filled */
 }
 
-.add-favorite-btn:hover svg {
-  fill: #0084ff;
+.add-favorite-btn:hover {
   transform: scale(1.3);
 }
 
-.add-favorite-btn:active svg {
-  fill: #003d80;
+.add-favorite-btn:active {
   transform: scale(0.95);
 }
 
 .save {
   fill: #003d80;
+}
+
+.search-bar-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto 0 auto;
+  display: flex;
+  align-items: center;
+  background: rgba(34, 34, 34, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px 0 #44008722;
+  transition: box-shadow 0.2s;
+}
+.search-bar-wrapper:focus-within {
+  box-shadow: 0 0 0 3px #2d39e2aa;
+}
+.search-icon {
+  position: absolute;
+  left: 18px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+.search-bar {
+  width: 100%;
+  padding: 14px 18px 14px 48px;
+  border-radius: 16px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 1.15rem;
+  outline: none;
+  transition: background 0.2s;
+}
+.search-bar::placeholder {
+  color: #aac5ff;
+  font-size: 1.08rem;
+  opacity: 1;
+}
+.search-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #181818;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  z-index: 10;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.search-suggestions li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.search-suggestions li:hover {
+  background: #001487;
+}
+.search-thumb {
+  width: 40px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #222;
+}
+.search-year {
+  color: #42a5f5;
+  font-size: 0.95em;
 }
 </style>

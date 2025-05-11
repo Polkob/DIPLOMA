@@ -1,5 +1,5 @@
 import os
-from process import preprocess
+import preprocess
 import pickle
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer

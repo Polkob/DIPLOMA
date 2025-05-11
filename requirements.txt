@@ -6,3 +6,9 @@ Flask-CORS
 psycopg2-binary
 Flask-Bcrypt
 python-dotenv
+numpy
+scikit-learn
+nltk
+aiohttp>=3.8.0
+tqdm>=4.65.0
+backoff>=2.2.1

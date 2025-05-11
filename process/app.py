@@ -20,8 +20,8 @@ from flask import Flask, request, jsonify
 import streamlit as st
 import streamlit_option_menu
 from streamlit_extras.stoggle import stoggle
-from process import preprocess
-from process.display import Main
+import preprocess
+from display import Main
 
 # Setting the wide mode as default
 st.set_page_config(layout="wide")
@@ -59,26 +59,36 @@ def main():
             paging_movies()
 
     def recommend_display():
-
         st.title('Movie Recommender System')
 
-        selected_movie_name = st.selectbox(
-            'Select a Movie...', new_df['title'].values
-        )
+        # Allow selecting 1-3 movies
+        st.write("Select 1-3 movies you like:")
+        
+        selected_movies = []
+        for i in range(3):
+            movie = st.selectbox(
+                f'Movie {i+1} (Optional)' if i > 0 else 'Select a Movie...',
+                [''] + list(new_df['title'].values),
+                key=f'movie_{i}'
+            )
+            if movie:
+                selected_movies.append(movie)
+            if i == 0 and not movie:
+                break  # First movie is required
 
         rec_button = st.button('Recommend')
-        if rec_button:
-            st.session_state.selected_movie_name = selected_movie_name
-            recommendation_tags(new_df, selected_movie_name, r'Files/similarity_tags_tags.pkl',"are")
-            recommendation_tags(new_df, selected_movie_name, r'Files/similarity_tags_genres.pkl',"on the basis of genres are")
-            recommendation_tags(new_df, selected_movie_name,
-                                r'Files/similarity_tags_tprduction_comp.pkl',"from the same production company are")
-            recommendation_tags(new_df, selected_movie_name, r'Files/similarity_tags_keywords.pkl',"on the basis of keywords are")
-            recommendation_tags(new_df, selected_movie_name, r'Files/similarity_tags_tcast.pkl',"on the basis of cast are")
+        if rec_button and selected_movies:
+            st.session_state.selected_movie_name = selected_movies[0]  # Keep first movie for details view
+            recommendation_tags(new_df, selected_movies, r'Files/similarity_tags_tags.pkl', "are")
+            recommendation_tags(new_df, selected_movies, r'Files/similarity_tags_genres.pkl', "on the basis of genres are")
+            recommendation_tags(new_df, selected_movies, r'Files/similarity_tags_tprduction_comp.pkl', "from the same production company are")
+            recommendation_tags(new_df, selected_movies, r'Files/similarity_tags_keywords.pkl', "on the basis of keywords are")
+            recommendation_tags(new_df, selected_movies, r'Files/similarity_tags_tcast.pkl', "on the basis of cast are")
+        elif rec_button:
+            st.warning("Please select at least one movie")
 
-    def recommendation_tags(new_df, selected_movie_name, pickle_file_path,str):
-
-        movies, posters = preprocess.recommend(new_df, selected_movie_name, pickle_file_path)
+    def recommendation_tags(new_df, selected_movies, pickle_file_path, str):
+        movies, posters = preprocess.recommend(new_df, selected_movies, pickle_file_path)
         st.subheader(f'Best Recommendations {str}...')
 
         rec_movies = []
@@ -94,23 +104,16 @@ def main():
                 displayed.append(j)
                 cnt += 1
 
+        if not rec_movies:
+            st.write("No recommendations found. Try selecting different movies.")
+            return
+
         # Columns to display informations of movies i.e. movie title and movie poster
-        col1, col2, col3, col4, col5 = st.columns(5)
-        with col1:
-            st.text(rec_movies[0])
-            st.image(rec_posters[0])
-        with col2:
-            st.text(rec_movies[1])
-            st.image(rec_posters[1])
-        with col3:
-            st.text(rec_movies[2])
-            st.image(rec_posters[2])
-        with col4:
-            st.text(rec_movies[3])
-            st.image(rec_posters[3])
-        with col5:
-            st.text(rec_movies[4])
-            st.image(rec_posters[4])
+        cols = st.columns(5)
+        for i, (col, movie, poster) in enumerate(zip(cols, rec_movies, rec_posters)):
+            with col:
+                st.text(movie)
+                st.image(poster)
 
     def display_movie_details():
 

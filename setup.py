@@ -1,16 +1,16 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='filmfinder',
-    version='1.0',
+    name="filmfinder",
+    version="0.1",
     packages=find_packages(),
-    include_package_data=True,
     install_requires=[
-        'flask',
-        'flask-sqlalchemy',
-        'flask-migrate',
-        'flask-cors',
-        'psycopg2-binary',
-        'python-dotenv'
-    ]
+        'streamlit',
+        'streamlit-option-menu',
+        'streamlit-extras',
+        'pandas',
+        'nltk',
+        'scikit-learn',
+        'requests'
+    ],
 ) 

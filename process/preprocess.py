@@ -141,22 +141,49 @@ def fetch_posters(movie_id):
     return str_
 
 
-def recommend(new_df, movie, pickle_file_path):
-    with open(pickle_file_path, 'rb') as pickle_file:
-        similarity_tags = pickle.load(pickle_file)
-
-    movie_idx = new_df[new_df['title'] == movie].index[0]
-
-    # Getting the top 25 movies from the list which are most similar
-    movie_list = sorted(list(enumerate(similarity_tags[movie_idx])), reverse=True, key=lambda x: x[1])[1:26]
-
+def recommend(new_df, movies, pickle_file_path):
+    if isinstance(movies, str):
+        movies = [movies]
+    
+    all_recommendations = []
+    all_similarities = []
+    
+    for movie in movies:
+        try:
+            movie_idx = new_df[new_df['title'] == movie].index[0]
+            with open(pickle_file_path, 'rb') as pickle_file:
+                similarity_tags = pickle.load(pickle_file)
+            
+            # Getting the top 25 movies from the list which are most similar
+            movie_list = sorted(list(enumerate(similarity_tags[movie_idx])), reverse=True, key=lambda x: x[1])[1:26]
+            all_similarities.append(movie_list)
+        except IndexError:
+            print(f"Movie {movie} not found in database")
+            continue
+    
+    if not all_similarities:
+        return [], []
+    
+    # Combine recommendations from all movies
+    combined_scores = {}
+    for movie_list in all_similarities:
+        for idx, score in movie_list:
+            if idx not in combined_scores:
+                combined_scores[idx] = 0
+            combined_scores[idx] += score
+    
+    # Sort by combined scores
+    final_recommendations = sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:25]
+    
     rec_movie_list = []
     rec_poster_list = []
-
-    for i in movie_list:
-        rec_movie_list.append(new_df.iloc[i[0]]['title'])
-        rec_poster_list.append(fetch_posters(new_df.iloc[i[0]]['movie_id']))
-
+    
+    for idx, _ in final_recommendations:
+        movie_title = new_df.iloc[idx]['title']
+        if movie_title not in movies:  # Don't recommend the input movies
+            rec_movie_list.append(movie_title)
+            rec_poster_list.append(fetch_posters(new_df.iloc[idx]['movie_id']))
+    
     return rec_movie_list, rec_poster_list
 
 
